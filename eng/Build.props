@@ -56,8 +56,8 @@
     <TextOnlyPackageProject Include="$(RepoRoot)src\textOnlyPackages\src\*\*\*.csproj" />
     <ProjectToBuild Include="@(TextOnlyPackageProject)" />
 
-    <ReferencePackageProject Include="$(RepoRoot)src\referencePackages\src\**\*.csproj" />
-    <ProjectToBuild Include="@(ReferencePackageProject)" />
+    <!-- <ReferencePackageProject Include="$(RepoRoot)src\referencePackages\src\**\*.csproj" />
+    <ProjectToBuild Include="@(ReferencePackageProject)" /> -->
 
     <ProjectToBuild Remove="@(DependencyPackageProjects)" />
   </ItemGroup>
