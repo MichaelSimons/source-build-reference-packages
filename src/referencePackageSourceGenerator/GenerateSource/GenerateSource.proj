@@ -5,19 +5,33 @@
     <TargetFramework>net6.0</TargetFramework>
     <SkipCopyBuildProduct>true</SkipCopyBuildProduct>
     <RestorePackagesPath>$(TargetPackagesPath)</RestorePackagesPath>
+    <GenerateProjectsTaskPath>$(ArtifactsDir)bin/GenerateProjectsTask/Debug/net6.0/GenerateProjectsTask.dll</GenerateProjectsTaskPath>
   </PropertyGroup>
 
   <Import Project="../../common/RestoreProjects.proj"/>
+
+  <ItemGroup>
+    <ProjectReference Include="../Tasks/GenerateProjectsTask.csproj" />
+  </ItemGroup>
+
+  <UsingTask AssemblyFile="$(GenerateProjectsTaskPath)" TaskName="ReplaceRegexInFiles" />
 
   <ItemGroup>
     <GenAPIInputAssembly Include="$(_GenAPIInputAssembly)" />
     <GenAPIExcludeAttributesList Include="$(_GenAPIExcludeAttributesList)" />
   </ItemGroup>
 
-  <Target Name="CopyNuspecFiles" BeforeTargets="CoreCompile">
+  <Target Name="ProcessNuspecFiles" BeforeTargets="CoreCompile">
     <Message Importance="High" Text="==> Copying all target package nuspec files to generated source" />
     <Copy SourceFiles="@(NuspecFiles)" DestinationFiles="@(NuspecFiles->'$(GeneratedSourcePath)%(RecursiveDir)%(Filename)%(Extension)')" />
-    <Message Importance="High" Text="Copy Nuspecs Complete."/>
+    <Message Importance="High" Text="Copy Nuspecs Complete"/>
+
+    <Message Importance="High" Text="==> Removing nuspec icon references" />
+    <ReplaceRegexInFiles
+      InputFiles="@(NuspecFiles)"
+      OldTextRegex="\s*&lt;icon&gt;.*&lt;/icon&gt;\s*[\r\n]+"
+      NewText="d" />
+    <Message Importance="High" Text="Removing Icons Complete" />
   </Target>
 
   <Target Name="CopyDummyFiles" BeforeTargets="CoreCompile">
