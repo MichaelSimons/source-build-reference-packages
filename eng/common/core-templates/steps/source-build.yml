@@ -12,6 +12,7 @@ parameters:
   # the usage of the properties on this object is split between the 'job' and 'steps' templates.
   platform: {}
   is1ESPipeline: false
+  componentGovernanceIgnoreDirectories: '$(Build.SourcesDirectory)/artifacts/sb/src/artifacts/obj/source-built-upstream-cache'
 
 steps:
 # Build. Keep it self-contained for simple reusability. (No source-build-specific job variables.)
@@ -129,5 +130,5 @@ steps:
   parameters:
     displayName: Component Detection (Exclude upstream cache)
     is1ESPipeline: ${{ parameters.is1ESPipeline }}
-    componentGovernanceIgnoreDirectories: '$(Build.SourcesDirectory)/artifacts/sb/src/artifacts/obj/source-built-upstream-cache'
+    componentGovernanceIgnoreDirectories: ${{ parameters.componentGovernanceIgnoreDirectories }}
     disableComponentGovernance: ${{ eq(variables['System.TeamProject'], 'public') }}
