@@ -1,6 +1,7 @@
 <Project>
 
   <ItemGroup Condition="'$(GeneratePackageSource)' == 'true'">
+	  <ProjectToBuild Include="$(RepoRoot)src\packageSourceGenerator\PackageSourceGeneratorTask\PackageSourceGeneratorTask.csproj" />
     <ProjectToBuild Include="$(RepoRoot)src\packageSourceGenerator\PackageSourceGenerator.proj" />
   </ItemGroup>
 

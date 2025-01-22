@@ -67,5 +67,5 @@ foreach ($argument in $PSBoundParameters.Keys)
   }
 }
 
-Invoke-Expression "& `"$PSScriptRoot\common\build.ps1`" -restore -build -warnaserror 0 /p:GeneratePackageSource=true $arguments"
+Invoke-Expression "& `"$PSScriptRoot\common\build.ps1`" -restore -build -bl -warnaserror 0 /p:GeneratePackageSource=true $arguments"
 exit 0
