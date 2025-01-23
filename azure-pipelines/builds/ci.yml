@@ -25,6 +25,8 @@ extends:
   template: azure-pipelines/MicroBuild.1ES.Official.yml@MicroBuildTemplate
   parameters:
     sdl:
+      componentgovernance:
+        ignoreDirectories: 'artifacts/sb/src/src/referencePackages/src/,artifacts/sb/package-cache,artifacts/sb/src/artifacts/bin,artifacts/sb/src/artifacts/packages,artifacts/sb/src/artifacts/obj/source-built-upstream-cache,artifacts/sb/src/src,src'
       policheck:
         enabled: true
       sourceAnalysisPool:
