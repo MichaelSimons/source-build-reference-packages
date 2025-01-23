@@ -16,7 +16,7 @@ stages:
         os: linux
     container: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream8
     variables:
-      ComponentDetection.IgnoreDirectories: 'artifacts/sb/src/src/referencePackages/src,s/packages,artifacts/sb/src/artifacts/obj/source-built-upstream-cache,artifacts/sb/src/src,src'
+      ComponentDetection.IgnoreDirectories: 'artifacts/sb/package-cache,artifacts/sb/src/artifacts/bin,artifacts/sb/src/artifacts/packages,artifacts/sb/src/artifacts/obj/source-built-upstream-cache,artifacts/sb/src/src,src'
     steps:
     - template: ${{ parameters.engCommonTemplatesDir }}/steps/source-build.yml
 
