@@ -120,7 +120,7 @@ steps:
     displayName: Component Detection (Exclude upstream cache)
     is1ESPipeline: ${{ parameters.is1ESPipeline }}
     componentGovernanceIgnoreDirectories: ${{ parameters.componentGovernanceIgnoreDirectories }}
-    disableComponentGovernance: ${{ eq(variables['System.TeamProject'], 'public') }}
+    disableComponentGovernance: true
 
 - template: /eng/common/core-templates/steps/publish-pipeline-artifacts.yml
   parameters:
