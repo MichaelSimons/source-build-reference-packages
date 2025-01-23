@@ -18,7 +18,13 @@ stages:
     steps:
     - template: ${{ parameters.engCommonTemplatesDir }}/steps/source-build.yml
       parameters:
-        componentGovernanceIgnoreDirectories: '/artifacts/sb/package-cache,/artifacts/sb/src/artifacts/bin,/artifacts/sb/src/artifacts/packages,/artifacts/sb/src/artifacts/obj/source-built-upstream-cache,/artifacts/sb/src/src,/src'
+        componentGovernanceIgnoreDirectories: |
+          /artifacts/sb/package-cache,
+          /artifacts/sb/src/artifacts/bin,
+          /artifacts/sb/src/artifacts/packages,
+          /artifacts/sb/src/artifacts/obj/source-built-upstream-cache,
+          /artifacts/sb/src/src,
+          /src
 
     - script: $(Build.SourcesDirectory)/test.sh
       displayName: Run Tests
