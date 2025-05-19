@@ -1,0 +1,17 @@
+<Project>
+
+  <ItemGroup>
+    <!-- Retrieve all "reference" packages and computed their what their published nupkg file names will be -->
+    <ReferencePackage Include="$(RepoRoot)src\referencePackages\src\**\*.csproj;$(RepoRoot)src\targetPacks\ILsrc\**\*.csproj"
+                      NupkgFileName="$(ArtifactsShippingPackagesDir)%(Filename).nupkg" />
+    <ReferencePackageWithNupkgFileName Include="@(ReferencePackage->Metadata('NupkgFileName'))" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Artifact Update="@(ReferencePackageWithNupkgFileName)">
+      <!-- Add additional Type=Reference metadata for all reference packages -->
+      <ManifestArtifactData>%(Artifact.ManifestArtifactData);IsReferencePackage=true</ManifestArtifactData>
+    </Artifact>
+  </ItemGroup>
+
+</Project>
