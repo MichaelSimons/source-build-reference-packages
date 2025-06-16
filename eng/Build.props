@@ -13,6 +13,7 @@
     <ProjectToBuild Include="$(RepoRoot)src\targetPacks\ILsrc\**\*.csproj" BuildInParallel="false" />
     <ProjectToBuild Include="$(RepoRoot)src\textOnlyPackages\src\*\*\*.csproj" />
     <ProjectToBuild Include="$(RepoRoot)src\referencePackages\src\**\*.csproj" />
+    <ProjectToBuild Include="$(RepoRoot)src\externalPackages\projects\*.proj" />
   </ItemGroup>
 
   <!--

@@ -10,6 +10,7 @@
   <PropertyGroup>
     <HumanizerCoreVersion>2.14.1</HumanizerCoreVersion>
     <!-- MSBuild dependencies -->
+    <MicrosoftBuildVersion>17.8.3</MicrosoftBuildVersion>
     <MicrosoftBuildUtilitiesCoreVersion>17.8.3</MicrosoftBuildUtilitiesCoreVersion>
     <!-- NuGet dependencies -->
     <NuGetPackagingVersion>6.11.0</NuGetPackagingVersion>
@@ -20,5 +21,16 @@
     <MicrosoftDotNetGenAPITaskPackageVersion>10.0.100-preview.6.25310.107</MicrosoftDotNetGenAPITaskPackageVersion>
     <!-- xUnit dependencies -->
     <XunitSkippableFactVersion>1.4.13</XunitSkippableFactVersion>
+  </PropertyGroup>
+  <!-- Versions of the externalPackages -->
+  <PropertyGroup>
+    <AbstractionsXunitReleaseVersion>2.0.3</AbstractionsXunitReleaseVersion>
+    <AzureActiveDirectoryIdentityModelExtensionsForDotNetReleaseVersion>8.0.1</AzureActiveDirectoryIdentityModelExtensionsForDotNetReleaseVersion>
+    <CssParserReleaseVersionSuffix>20230414.1</CssParserReleaseVersionSuffix>
+    <HumanizerReleaseVersion>2.14.1</HumanizerReleaseVersion>
+    <MSBuildLocatorReleaseVersion>1.6.10</MSBuildLocatorReleaseVersion>
+    <SolutionPersistenceVersion>1.0.52</SolutionPersistenceVersion>
+    <SpectreConsoleReleaseVersion>0.48.0</SpectreConsoleReleaseVersion>
+    <XunitReleaseVersion>2.9.2</XunitReleaseVersion>
   </PropertyGroup>
 </Project>
