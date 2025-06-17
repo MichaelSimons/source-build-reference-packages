@@ -6,6 +6,7 @@
     <Copyright>$(CopyrightNetFoundation)</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <IsPackable>true</IsPackable>
+    <LogVerbosity Condition="'$(LogVerbosity)' == ''">minimal</LogVerbosity>
     <!--
       Arcade defaults Serviceable to 'true'. Reset it, to use the value in the nuspec. Improves
       equality with real packages.
