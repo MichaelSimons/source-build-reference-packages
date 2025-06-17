@@ -6,10 +6,10 @@
     <TargetFramework>$(NetCurrent)</TargetFramework>
     <InnerRepoName>$(MSBuildProjectName)</InnerRepoName>
 
-    <SrcReposDir>$(SrcDir)repos/</SrcReposDir>
-    <KeysDir>$(SrcReposDir)keys/</KeysDir>
-    <SubmoduleDirectory>$(SrcReposDir)src/</SubmoduleDirectory>
-    <PatchesDir>$(SrcReposDir)patches/</PatchesDir>
+    <ExternalPackagesDir>$([MSBuild]::NormalizeDirectory('$(SrcDir)', 'src', 'externalPackages'))</ExternalPackagesDir>
+    <KeysDir>$([MSBuild]::NormalizeDirectory('$(ExternalPackagesDir)', 'keys'))</KeysDir>
+    <SubmoduleDirectory>$([MSBuild]::NormalizeDirectory('$(ExternalPackagesDir)', 'src'))</SubmoduleDirectory>
+    <PatchesDir>$([MSBuild]::NormalizeDirectory('$(ExternalPackagesDir)', 'patches'))</PatchesDir>
     <OriginalProjectDirectory>$([MSBuild]::NormalizeDirectory('$(SubmoduleDirectory)', '$(InnerRepoName)'))</OriginalProjectDirectory>
     <ProjectDirectory>$([MSBuild]::NormalizeDirectory('$(OriginalProjectDirectory)', 'artifacts', 'clone'))</ProjectDirectory>
     <ArtifactsLogRepoDir>$([MSBuild]::NormalizeDirectory('$(ArtifactsLogDir)', '$(InnerRepoName)'))</ArtifactsLogRepoDir>
@@ -17,6 +17,9 @@
     <MinimalConsoleLogOutput Condition="'$(MinimalConsoleLogOutput)' == ''">true</MinimalConsoleLogOutput>
     <RepoConsoleLogFile>$(ArtifactsLogRepoDir)$(InnerRepoName).log</RepoConsoleLogFile>
     <RedirectRepoOutputToLog Condition="'$(MinimalConsoleLogOutput)' == 'true'">&gt; $(RepoConsoleLogFile) 2&gt;&amp;1</RedirectRepoOutputToLog>
+
+    <LogVerbosity Condition="'$(LogVerbosity)' == ''">minimal</LogVerbosity>
+    <BuildInParallel Condition="'$(BuildInParallel)' == ''">false</BuildInParallel>
   </PropertyGroup>
 
   <ItemGroup>

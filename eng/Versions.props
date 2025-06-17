@@ -10,8 +10,8 @@
   <PropertyGroup>
     <HumanizerCoreVersion>2.14.1</HumanizerCoreVersion>
     <!-- MSBuild dependencies -->
-    <MicrosoftBuildVersion>17.8.3</MicrosoftBuildVersion>
-    <MicrosoftBuildUtilitiesCoreVersion>17.8.3</MicrosoftBuildUtilitiesCoreVersion>
+    <MicrosoftBuildVersion>17.14.8</MicrosoftBuildVersion>
+    <MicrosoftBuildUtilitiesCoreVersion>17.14.8</MicrosoftBuildUtilitiesCoreVersion>
     <!-- NuGet dependencies -->
     <NuGetPackagingVersion>6.11.0</NuGetPackagingVersion>
     <!-- Runtime dependencies -->
