@@ -6,7 +6,6 @@
     <Copyright>$(CopyrightNetFoundation)</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <IsPackable>true</IsPackable>
-    <LogVerbosity Condition="'$(LogVerbosity)' == ''">minimal</LogVerbosity>
     <!--
       Arcade defaults Serviceable to 'true'. Reset it, to use the value in the nuspec. Improves
       equality with real packages.
@@ -17,6 +16,8 @@
     <CustomizationsSourceFile>$(CustomizationsPrefix).cs</CustomizationsSourceFile>
 
     <ArtifactsReferenceOnlyPackagesDir>$([MSBuild]::NormalizeDirectory('$(ArtifactsPackagesDir)','ReferenceOnly'))</ArtifactsReferenceOnlyPackagesDir>
+
+    <LogVerbosity Condition="'$(LogVerbosity)' == ''">minimal</LogVerbosity>
 
     <!-- Only upgrade NuGetAudit warnings to errors for official builds. -->
     <WarningsNotAsErrors Condition="'$(OfficialBuild)' != 'true'">$(WarningsNotAsErrors);NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
