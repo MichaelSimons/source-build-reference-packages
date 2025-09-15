@@ -55,13 +55,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="$(PackageName)" Version="$(PackageVersion)" />
+    $$PackageReference$$
     <PackageReference Include="Microsoft.DotNet.GenAPI.Task" Version="$(MicrosoftDotNetGenAPITaskPackageVersion)" PrivateAssets="all" />
   </ItemGroup>
 
   <Target Name="SetGenAPIInputAndOutputPaths"
           DependsOnTargets="ResolvePackageAssets"
-          BeforeTargets="GenAPIGenerateReferenceAssemblySource">
+          BeforeTargets="GenAPIGenerateReferenceAssemblySource"
+          Condition="'$$PackageReference$$' != ''">
     <ItemGroup>
       <GenAPIInputAssembly Include="@(ResolvedCompileFileDefinitions->WithMetadataValue('NuGetPackageId', '$(PackageName)'))" />
     </ItemGroup>
@@ -72,6 +73,34 @@
     <PropertyGroup>
       <PackageTargetDirectory>$$PackageTargetDirectory$$</PackageTargetDirectory>
       <InputAssemblyRelativePath>$([System.IO.Path]::GetDirectoryName('%(GenAPIInputAssembly.PathInPackage)'))</InputAssemblyRelativePath>
+      <GenAPITargetPath>$([System.IO.Path]::Combine('$(PackageTargetDirectory)', '$(InputAssemblyRelativePath)'))</GenAPITargetPath>
+    </PropertyGroup>
+
+    <!-- Create the directory beforehand as otherwise GenAPI assumes that the passed in path is a file. -->
+    <MakeDir Directories="$(GenAPITargetPath)" />
+  </Target>
+
+  <!-- Alternative target for targeting packs - directly use downloaded assemblies -->
+  <Target Name="SetGenAPIInputAndOutputPathsForTargetingPack"
+          BeforeTargets="GenAPIGenerateReferenceAssemblySource"
+          Condition="'$$PackageReference$$' == ''">
+    <PropertyGroup>
+      <PackageTargetDirectory>$$PackageTargetDirectory$$</PackageTargetDirectory>
+      <!-- Point to the NuGet package cache where the targeting pack was downloaded -->
+      <PackageDirectory>$(NuGetPackageRoot)\$(PackageName.ToLowerInvariant())\$(PackageVersion)</PackageDirectory>
+    </PropertyGroup>
+
+    <!-- Find assemblies directly in the targeting pack structure -->
+    <ItemGroup>
+      <PotentialAssemblies Include="$(PackageDirectory)\ref\$(TargetFramework)\*.dll" />
+      <GenAPIInputAssembly Include="@(PotentialAssemblies)" Condition="Exists('%(Identity)')" />
+    </ItemGroup>
+
+    <Error Text="Couldn't find assemblies for targeting pack '$(PackageName)' (v$(PackageVersion)) for target framework '$(TargetFramework)' in $(PackageDirectory)\ref\$(TargetFramework)"
+           Condition="'@(GenAPIInputAssembly)' == ''" />
+
+    <PropertyGroup>
+      <InputAssemblyRelativePath>ref\$(TargetFramework)</InputAssemblyRelativePath>
       <GenAPITargetPath>$([System.IO.Path]::Combine('$(PackageTargetDirectory)', '$(InputAssemblyRelativePath)'))</GenAPITargetPath>
     </PropertyGroup>
 

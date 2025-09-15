@@ -7,9 +7,11 @@
     <PackagesSrcDirectory Condition="'$(PackagesSrcDirectory)' == ''">$(RepoRoot)src\</PackagesSrcDirectory>
     <ReferencePackagesSrcDirectory>$([MSBuild]::NormalizeDirectory('$(PackagesSrcDirectory)', 'referencePackages', 'src'))</ReferencePackagesSrcDirectory>
     <TextOnlyPackagesSrcDirectory>$([MSBuild]::NormalizeDirectory('$(PackagesSrcDirectory)', 'textOnlyPackages', 'src'))</TextOnlyPackagesSrcDirectory>
+    <TargetPacksSrcDirectory>$([MSBuild]::NormalizeDirectory('$(PackagesSrcDirectory)', 'targetPacks', 'src'))</TargetPacksSrcDirectory>
     <!-- The packages output directory. -->
-    <PackagesTargetDirectory Condition="'$(PackageType)' != 'text'">$(ReferencePackagesSrcDirectory)</PackagesTargetDirectory>
+    <PackagesTargetDirectory>$(ReferencePackagesSrcDirectory)</PackagesTargetDirectory>
     <PackagesTargetDirectory Condition="'$(PackageType)' == 'text'">$(TextOnlyPackagesSrcDirectory)</PackagesTargetDirectory>
+    <PackagesTargetDirectory Condition="'$(PackageType)' == 'target'">$(TargetPacksSrcDirectory)</PackagesTargetDirectory>
     <!-- The following target frameworks aren't buildable with the current SDK and as they don't contribute to the set of
          source build target verticals, can be safely excluded. -->
     <ExcludeTargetFrameworks>monoandroid*;monotouch*;net20;net35;net4*;net5.0;netcore50;netcoreapp2.*;netcoreapp3.0;portable*;uap*;win8;win81;wp8;wpa81;xamarin*</ExcludeTargetFrameworks>
@@ -44,7 +46,7 @@
   <ItemGroup>
     <PackageDownload Include="$(PackageName)"
                      Version="[$(PackageVersion)]"
-                     Condition="'$(PackageName)' != '' and '$(PackageVersion)' != ''" />
+                     Condition="'$(PackageName)' != '' and '$(PackageVersion)' != '' and '$(PackageType)' != 'target'" />
   </ItemGroup>
 
   <!-- Validate that the required properties are passed in. -->
@@ -74,6 +76,30 @@
     </CollatePackageDownloads>
   </Target>
 
+  <!-- Download targeting packs directly since they can't be used with PackageReference -->
+  <Target Name="DownloadTargetingPack"
+          Condition="'$(PackageType)' == 'target' and '$(PackageName)' != '' and '$(PackageVersion)' != ''"
+          BeforeTargets="GeneratePackageSource">
+    <PropertyGroup>
+      <TargetingPackageUrl Condition="'$(RestoreAdditionalProjectSources)' == ''">https://api.nuget.org/v3-flatcontainer/$(PackageName.ToLowerInvariant())/$(PackageVersion)/$(PackageName.ToLowerInvariant()).$(PackageVersion).nupkg</TargetingPackageUrl>
+      <TargetingPackageNupkgPath>$(RestoredPackageDirectory)$(PackageName.ToLowerInvariant()).$(PackageVersion).nupkg</TargetingPackageNupkgPath>
+    </PropertyGroup>
+
+    <MakeDir Directories="$(RestoredPackageDirectory)" />
+    
+    <Message Text="Downloading targeting pack $(PackageName) v$(PackageVersion)..." Importance="high" />
+    
+    <!-- Use DownloadFile task to download the nupkg -->
+    <DownloadFile SourceUrl="$(TargetingPackageUrl)"
+                  DestinationFolder="$(RestoredPackageDirectory)"
+                  DestinationFileName="$(PackageName.ToLowerInvariant()).$(PackageVersion).nupkg" />
+    
+    <!-- Extract the nupkg to the package directory -->
+    <Unzip SourceFiles="$(TargetingPackageNupkgPath)"
+           DestinationFolder="$(RestoredPackageDirectory)"
+           OverwriteReadOnlyFiles="true" />
+  </Target>
+
   <!-- The entry point target that runs when a CSV file is provided which invokes the
        'GeneratePackageSource' target for each package. -->
   <Target Name="GeneratePackagesSource"
@@ -92,6 +118,7 @@
           AfterTargets="Build"
           Condition="'$(PackageName)' != '' and '$(PackageVersion)' != ''"
           DependsOnTargets="BeginGeneratePackageSource;
+                            DownloadTargetingPack;
                             GetPackageItems;
                             GenerateReferencePackageSource;
                             GenerateTextOnlyPackageSource;
@@ -140,7 +167,8 @@
   <Target Name="GenerateReferencePackageSource"
           Condition="'@(PackageCompileItem)' != '' and '$(PackageType)' != 'text'"
           DependsOnTargets="GenerateAndInvokeGenerateSourceProject;
-                            CopyPlaceholderFiles" />
+                            CopyPlaceholderFiles;
+                            CopyTargetPackAuxiliaryFiles" />
 
   <!-- Generate an intermediate multi-targeting wrapper project that retrieves the reference assemblies and invokes GenAPI. -->
   <Target Name="GenerateAndInvokeGenerateSourceProject"
@@ -160,7 +188,12 @@
     </PropertyGroup>
 
     <!-- Generate wrapper project that restores the dependent package and all its dependencies in order for
-         GenAPI to run successfully. -->
+         GenAPI to run successfully. For targeting packs, skip the PackageReference since they can't be used that way. -->
+    <PropertyGroup>
+      <PackageReferenceInclude Condition="'$(PackageType)' == 'target'"></PackageReferenceInclude>
+      <PackageReferenceInclude Condition="'$(PackageType)' != 'target'">&lt;PackageReference Include="$(RealPackageId)" Version="$(PackageVersion)" /&gt;</PackageReferenceInclude>
+    </PropertyGroup>
+    
     <WriteLinesToFile File="$(GenerateSourceProjectTargetPath)"
                       Lines="$([System.IO.File]::ReadAllText('$(GenerateSourceProjectTemplate)')
                                .Replace('$$BaseOutputPath$$', '$(GenerateSourceProjectBaseOutputPath)')
@@ -169,7 +202,8 @@
                                .Replace('$$TargetFrameworks$$', '$(PackageCompileItemsTargetFrameworks)')
                                .Replace('$$PackageTargetDirectory$$', '$(PackageTargetDirectory)')
                                .Replace('$$PackageName$$', '$(RealPackageId)')
-                               .Replace('$$PackageVersion$$', '$(PackageVersion)'))"
+                               .Replace('$$PackageVersion$$', '$(PackageVersion)')
+                               .Replace('$$PackageReference$$', '$(PackageReferenceInclude)'))"
                       Overwrite="true"
                       Condition="'$(PackageCompileItemsTargetFrameworks)' != ''" />
 
@@ -284,6 +318,30 @@
     <Message Text="$(MSBuildProjectName) -> $([MSBuild]::NormalizePath('$(PackageTargetDirectory)', '%(TextOnlyPackageContent.RecursiveDir)%(TextOnlyPackageContent.Filename)%(TextOnlyPackageContent.Extension)'))"
              Importance="high"
              Condition="'@(TextOnlyPackageContent)' != ''" />
+  </Target>
+
+  <!-- Copy auxiliary files for targeting packs (LICENSE, THIRD-PARTY-NOTICES, data folder, etc.) -->
+  <Target Name="CopyTargetPackAuxiliaryFiles"
+          DependsOnTargets="GetPackageItems"
+          Condition="'$(PackageType)' == 'target'">
+    <ItemGroup>
+      <TargetPackAuxiliaryFiles Include="$(RestoredPackageDirectory)**/*"
+                                Exclude="$(RestoredPackageDirectory)**/.nupkg.metadata;
+                                         $(RestoredPackageDirectory)**/.signature.p7s;
+                                         $(RestoredPackageDirectory)**/*.nupkg;
+                                         $(RestoredPackageDirectory)**/*.nupkg.sha512;
+                                         $(RestoredPackageDirectory)**/ref/**
+                                         $(RestoredPackageDirectory)**/analyzers/**;
+                                         $(RestoredPackageNuspec)" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(TargetPackAuxiliaryFiles)"
+          DestinationFiles="@(TargetPackAuxiliaryFiles->'$(PackageTargetDirectory)%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+
+    <Message Text="$(MSBuildProjectName) -> $([MSBuild]::NormalizePath('$(PackageTargetDirectory)', '%(TargetPackAuxiliaryFiles.RecursiveDir)%(TargetPackAuxiliaryFiles.Filename)%(TargetPackAuxiliaryFiles.Extension)'))"
+             Importance="high"
+             Condition="'@(TargetPackAuxiliaryFiles)' != ''" />
   </Target>
 
   <!-- Generate the final reference package project and write it to the package target directory. -->

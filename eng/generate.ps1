@@ -3,7 +3,7 @@ Param(
   [string[]][Alias('p')]$package,
   [string][Alias('c')]$csv,
   [string][Alias('d')]$destination,
-  [ValidateSet('ref','text')][string][Alias('t')]$type,
+  [ValidateSet('ref','target','text')][string][Alias('t')]$type,
   [switch][Alias('x')]$excludeDependencies,
   [string][Alias('f')]$feeds,
   [switch][Alias('h')]$help,
@@ -18,6 +18,8 @@ function Get-Help() {
   Write-Host ""
   Write-Host "Reference package generation will restore reference package(s) and dependencies and generate cs files"
   Write-Host "and with accompanying projects into the specified destination ('./src/referencePackages/' by default)."
+  Write-Host "Target pack generation will restore targeting packs and generate cs files from their reference assemblies"
+  Write-Host "into the specified destination ('./src/targetPacks/' by default)."
   Write-Host "Text-only package generation will restore the specified package and copy the source-build-usable content"
   Write-Host "into the provided directory ('./src/textOnlyPackages/' by default)."
   Write-Host ""
@@ -31,7 +33,7 @@ function Get-Help() {
   Write-Host "  -c|-csv                                      A path to a csv file of packages to generate. Format is the same as the -package"
   Write-Host "                                               option above, one per line. If specified, the -package option is ignored."
   Write-Host "  -d|-destination                              A path to the root of the repo to copy source into."
-  Write-Host "  -t|-type                                     Type of the package to generate. Accepted values: ref (default) | text."
+  Write-Host "  -t|-type                                     Type of the package to generate. Accepted values: ref (default) | target | text."
   Write-Host "  -x|-excludeDependencies                      Determines if package dependencies should be excluded. Default is false."
   Write-Host "  -f|-feeds                                    A semicolon-separated list of additional NuGet feeds to use during restore."
   Write-Host "  -h|-help                                     Print help and exit."
