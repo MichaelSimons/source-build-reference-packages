@@ -67,12 +67,26 @@ namespace Microsoft.DotNet.SourceBuild.Tasks
         /// </summary>
         public string[]? AllowedPackageReference { get; set; }
 
+        /// <summary>
+        /// Indicates if this is a target pack, which should generate an empty project.
+        /// </summary>
+        public string? IsTargetPack { get; set; }
+
         public override bool Execute()
         {
-            string referenceIncludes = "";
-            StrongNameData strongNameData = default;
             string projectContent = File.ReadAllText(ProjectTemplate);
             string projectDirectory = Path.GetDirectoryName(TargetPath)!;
+
+            // For target packs, just write the minimal template directly
+            if (IsTargetPack == "target")
+            {
+                Directory.CreateDirectory(projectDirectory);
+                File.WriteAllText(TargetPath, projectContent);
+                return true;
+            }
+
+            string referenceIncludes = "";
+            StrongNameData strongNameData = default;
 
             // Calculate the target frameworks based on the passed-in items.
             string[] targetFrameworks = CompileItems.Select(compileItem => compileItem.GetMetadata(SharedMetadata.TargetFrameworkMetadataName)).ToArray();

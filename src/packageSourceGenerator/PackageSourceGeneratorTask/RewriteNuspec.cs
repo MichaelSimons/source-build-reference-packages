@@ -30,6 +30,8 @@ namespace Microsoft.DotNet.SourceBuild.Tasks
 
         public bool RemoveRuntimeSpecificDependencies { get; set; }
 
+        public string? IsTargetPack { get; set; }
+
         public override bool Execute()
         {
             string nuspecContent = File.ReadAllText(NuspecPath!);
@@ -87,6 +89,12 @@ namespace Microsoft.DotNet.SourceBuild.Tasks
             nuspecContent = nuspecContent.Replace("http://go.microsoft.com/fwlink/?LinkId=529443", MicrosoftMitLicenseUrl);
             nuspecContent = nuspecContent.Replace("http://go.microsoft.com/fwlink/?LinkId=329770", MicrosoftMitLicenseUrl);
 
+            // Add files section for target packs
+            if (IsTargetPack == "target")
+            {
+                nuspecContent = AddFilesSection(nuspecContent);
+            }
+
             File.WriteAllText(TargetPath!, nuspecContent);
             return true;
         }
@@ -99,5 +107,24 @@ namespace Microsoft.DotNet.SourceBuild.Tasks
 
         [GeneratedRegex(@" *<dependency id=""runtime.native.+?"".+? />\r?\n")]
         private static partial Regex GetRuntimeSpecificDependenciesRegex();
+
+        private static string AddFilesSection(string nuspecContent)
+        {
+            string filesSection = """
+              <files>
+                <file src="*/**" target="/" exclude="obj/**/*.*;**/Debug/**/*.*" />
+                <file src="*" target="/" exclude="*.csproj" />
+              </files>
+            """;
+
+            // Insert files section before closing package tag
+            int closingPackageIndex = nuspecContent.LastIndexOf("</package>");
+            if (closingPackageIndex > 0)
+            {
+                nuspecContent = nuspecContent.Insert(closingPackageIndex, filesSection + "\n");
+            }
+
+            return nuspecContent;
+        }
     }
 }

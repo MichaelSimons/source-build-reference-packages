@@ -332,6 +332,10 @@
                                          $(RestoredPackageDirectory)**/*.nupkg.sha512;
                                          $(RestoredPackageDirectory)**/ref/**;
                                          $(RestoredPackageDirectory)**/analyzers/**;
+                                         $(RestoredPackageDirectory)**/Icon.png;
+                                         $(RestoredPackageDirectory)**/_rels/**;
+                                         $(RestoredPackageDirectory)**/package/**;
+                                         $(RestoredPackageDirectory)**[Content_Types].xml;
                                          $(RestoredPackageNuspec)" />
     </ItemGroup>
 
@@ -350,7 +354,8 @@
           DependsOnTargets="GetPackageItems"
           Condition="'@(PackageCompileItem)' != '' or '$(PackageType)' == 'text'">
     <PropertyGroup>
-      <PackageProjectTemplate>PackageProjectTemplate.xml</PackageProjectTemplate>
+      <PackageProjectTemplate Condition="'$(PackageType)' == 'target'">TargetPackProjectTemplate.xml</PackageProjectTemplate>
+      <PackageProjectTemplate Condition="'$(PackageType)' != 'target'">PackageProjectTemplate.xml</PackageProjectTemplate>
       <PackageProjectTargetPath>$(PackageTargetDirectory)$(RealPackageId).$(PackageVersion).csproj</PackageProjectTargetPath>
     </PropertyGroup>
 
@@ -363,7 +368,8 @@
                      CompileItems="@(PackageCompileItem)"
                      PackageDependencies="@(PackageDependency)"
                      FrameworkReferences="@(PackageFrameworkReference)"
-                     AllowedPackageReference="@(AllowedPackageReference)" />
+                     AllowedPackageReference="@(AllowedPackageReference)"
+                     IsTargetPack="$(PackageType)" />
 
     <Message Text="$(MSBuildProjectName) -> $(PackageProjectTargetPath)"
              Importance="high" />
@@ -383,7 +389,8 @@
                    ExcludeTargetFrameworks="$(ExcludeTargetFrameworks)"
                    RemoveIcon="true"
                    RemoveReadMe="true"
-                   RemoveRuntimeSpecificDependencies="true" />
+                   RemoveRuntimeSpecificDependencies="true"
+                   IsTargetPack="$(PackageType)" />
 
     <Message Text="$(MSBuildProjectName) -> $(NuspecTargetPath)"
              Importance="high" />
