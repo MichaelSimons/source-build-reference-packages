@@ -29,6 +29,7 @@
     <BasePackageTargetDirectory>$([MSBuild]::NormalizeDirectory('$(PackagesTargetDirectory)', '$(PackageName.ToLowerInvariant())'))</BasePackageTargetDirectory>
     <!-- The reference package output directory including the package version. -->
     <PackageTargetDirectory>$([MSBuild]::NormalizeDirectory('$(BasePackageTargetDirectory)', '$(PackageVersion)'))</PackageTargetDirectory>
+    <FrameworkListXmlPath>$(PackageTargetDirectory)data\FrameworkList.xml</FrameworkListXmlPath>
   </PropertyGroup>
 
   <!-- The list of allowed external dependencies -->
@@ -168,7 +169,8 @@
           Condition="'@(PackageCompileItem)' != '' and '$(PackageType)' != 'text'"
           DependsOnTargets="GenerateAndInvokeGenerateSourceProject;
                             CopyPlaceholderFiles;
-                            CopyTargetPackAuxiliaryFiles" />
+                            CopyTargetPackAuxiliaryFiles;
+                            PostProcessTargetPackFrameworkList" />
 
   <!-- Generate an intermediate multi-targeting wrapper project that retrieves the reference assemblies and invokes GenAPI. -->
   <Target Name="GenerateAndInvokeGenerateSourceProject"
@@ -335,7 +337,7 @@
                                          $(RestoredPackageDirectory)**/Icon.png;
                                          $(RestoredPackageDirectory)**/_rels/**;
                                          $(RestoredPackageDirectory)**/package/**;
-                                         $(RestoredPackageDirectory)**[Content_Types].xml;
+                                         $(RestoredPackageDirectory)**/[Content_Types].xml;
                                          $(RestoredPackageNuspec)" />
     </ItemGroup>
 
@@ -346,6 +348,30 @@
     <Message Text="$(MSBuildProjectName) -> $([MSBuild]::NormalizePath('$(PackageTargetDirectory)', '%(TargetPackAuxiliaryFiles.RecursiveDir)%(TargetPackAuxiliaryFiles.Filename)%(TargetPackAuxiliaryFiles.Extension)'))"
              Importance="high"
              Condition="'@(TargetPackAuxiliaryFiles)' != ''" />
+  </Target>
+
+  <!-- Post-process FrameworkList.xml for targeting packs to remove analyzer entries -->
+  <Target Name="PostProcessTargetPackFrameworkList"
+          DependsOnTargets="CopyTargetPackAuxiliaryFiles"
+          Condition="'$(PackageType)' == 'target' and Exists('$(FrameworkListXmlPath)')">
+
+    <ReadLinesFromFile File="$(FrameworkListXmlPath)">
+      <Output TaskParameter="Lines" ItemName="FrameworkListContent"/>
+    </ReadLinesFromFile>
+
+    <ItemGroup>
+      <!-- Filter out analyzer entries - keep only lines that don't contain Type="Analyzer" -->
+      <FilteredFrameworkListContent Include="@(FrameworkListContent)"
+                                    Condition="!$([System.String]::Copy('%(Identity)').Contains('Type=&quot;Analyzer&quot;'))" />
+    </ItemGroup>
+
+    <!-- Write the filtered content back to the file -->
+    <WriteLinesToFile File="$(FrameworkListXmlPath)"
+                      Lines="@(FilteredFrameworkListContent)"
+                      Overwrite="true" />
+
+    <Message Text="$(MSBuildProjectName) -> Removed analyzer entries from FrameworkList.xml"
+             Importance="high" />
   </Target>
 
   <!-- Generate the final reference package project and write it to the package target directory. -->
