@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="$(MSBuildThisFileDirectory)\ILsrc\**\*.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)\src\**\*.csproj" />
   </ItemGroup>
 
 </Project>

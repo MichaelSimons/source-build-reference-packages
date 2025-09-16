@@ -330,7 +330,7 @@
                                          $(RestoredPackageDirectory)**/.signature.p7s;
                                          $(RestoredPackageDirectory)**/*.nupkg;
                                          $(RestoredPackageDirectory)**/*.nupkg.sha512;
-                                         $(RestoredPackageDirectory)**/ref/**
+                                         $(RestoredPackageDirectory)**/ref/**;
                                          $(RestoredPackageDirectory)**/analyzers/**;
                                          $(RestoredPackageNuspec)" />
     </ItemGroup>

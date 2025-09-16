@@ -11,6 +11,13 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
     <NuGetAudit>false</NuGetAudit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+
+    <Nullable>Disable</Nullable>
+
+    <LangVersion>latest</LangVersion>
 
     <RestoreIlTooling>true</RestoreIlTooling>
 
@@ -29,6 +36,13 @@
     <NoWarn>$(NoWarn);NU5129</NoWarn>
     <!-- Disable NU5109, NU5127: NuGet has some expectations and hints for _._ usage, but we have some specific packages to replicate. -->
     <NoWarn>$(NoWarn);NU5109;NU5127</NoWarn>
+    <!-- Don't warn on CS3001, CS3002, CS3003, CS3008, CS3009, CS3011, CS3015 - Type is not CLS-compliant. -->
+    <NoWarn>$(NoWarn);CS3001;CS3002;CS3003;CS3008;CS3009;CS3011;CS3015</NoWarn>
+    <!--
+      Don't warn on CS8632 - The annotation for nullable reference types should only be used in code within a ‘#nullable’ annotations context.
+      The generated APIs may contain null annotated code, but we disable nullable project wide 
+    -->
+    <NoWarn>$(NoWarn);CS8632</NoWarn>
   </PropertyGroup>
 
 </Project>

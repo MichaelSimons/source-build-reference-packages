@@ -45,6 +45,9 @@
       <TargetingPackSrc
         Include="$(MSBuildProjectDirectory)\**\*.il"
         Exclude="@(TargetingPackSrcRequiringConstraintPatch)" />
+      <!-- Find all C# source files for reference assemblies -->
+      <TargetingPackSrc
+        Include="$(MSBuildProjectDirectory)\**\*.cs" />
       <TargetingPackSrc
         RelativeOutputAssemblyFile="%(RecursiveDir)%(Filename).dll" />
 

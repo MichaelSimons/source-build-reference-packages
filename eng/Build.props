@@ -10,10 +10,11 @@
 
   <ItemGroup Condition="'$(GeneratePackageSource)' != 'true' and '$(Test)' != 'true'">
     <!-- The ordering ensures the correct dependency order between package types. -->
+    <!-- <ProjectToBuild Include="$(RepoRoot)src\targetPacksIL\targetPacksIL.proj" BuildInParallel="false"/> -->
     <ProjectToBuild Include="$(RepoRoot)src\targetPacks\targetPacks.proj" BuildInParallel="false"/>
-    <ProjectToBuild Include="$(RepoRoot)src\textOnlyPackages\textOnlyPackages.proj" BuildInParallel="false" />
+    <!-- <ProjectToBuild Include="$(RepoRoot)src\textOnlyPackages\textOnlyPackages.proj" BuildInParallel="false" />
     <ProjectToBuild Include="$(RepoRoot)src\referencePackages\referencePackages.proj" BuildInParallel="false" />
-    <ProjectToBuild Include="$(RepoRoot)src\externalPackages\externalPackages.proj" BuildInParallel="false" />
+    <ProjectToBuild Include="$(RepoRoot)src\externalPackages\externalPackages.proj" BuildInParallel="false" /> -->
   </ItemGroup>
 
   <!--
