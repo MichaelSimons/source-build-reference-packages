@@ -7,13 +7,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace SbrpTests;
 
-public partial class GenerateScriptTests
+public class GenerateScriptTests
 {
     public static IEnumerable<object[]> Data => new List<object[]>
     {
@@ -58,20 +57,6 @@ public partial class GenerateScriptTests
 
         ExecuteHelper.ExecuteProcessValidateExitCode(command, arguments, Output);
 
-        // For target packs, we need to normalize IL files before comparison to remove IL disassembler
-        // version and image base comments that vary between different ILDasm versions and runs.
-        // We create a temporary normalized copy of the source directory to avoid modifying checked-in files.
-        string normalizedSrcDirectory = pkgSrcDirectory;
-        if (type == PackageType.Target)
-        {
-            normalizedSrcDirectory = Path.Combine(SandboxDirectory, "normalized-src", pkgDirectory);
-            PathUtilities.CopyDirectory(pkgSrcDirectory, normalizedSrcDirectory);
-            NormalizeILFiles(normalizedSrcDirectory);
-            NormalizeILFiles(pkgSandboxDirectory);
-            NormalizeFilePermissions(normalizedSrcDirectory);
-            NormalizeFilePermissions(pkgSandboxDirectory);
-        }
-
         // Copy any customization files from the source directory to the sandbox directory.
         // This is necessary because git diff doesn't support exclusions when comparing files outside of the repository.
         string[] customFiles = { "Customizations.cs", "Customizations.props" };
@@ -86,7 +71,7 @@ public partial class GenerateScriptTests
         }
 
         (Process Process, string StdOut, string StdErr) result =
-            ExecuteHelper.ExecuteProcess("git", $"diff --no-index {normalizedSrcDirectory} {pkgSandboxDirectory}", Output, true);
+            ExecuteHelper.ExecuteProcess("git", $"diff --no-index {pkgSrcDirectory} {pkgSandboxDirectory}", Output, true);
 
         string diff = result.StdOut;
         if (diff != string.Empty)
@@ -100,56 +85,4 @@ public partial class GenerateScriptTests
         }
     }
 
-    [GeneratedRegex(@"^//\s+\.NET IL Disassembler\.\s+Version")]
-    private static partial Regex ILDisassemblerVersionRegex();
-
-    [GeneratedRegex(@"^//\s+Image base:")]
-    private static partial Regex ImageBaseRegex();
-
-    [GeneratedRegex(@"//\s*-nan\(ind\)")]
-    private static partial Regex NanIndRegex();
-
-    /// <summary>
-    /// Normalizes IL files by removing IL disassembler version and image base comments
-    /// that vary between different ILDasm versions and runs.
-    /// </summary>
-    private static void NormalizeILFiles(string directory)
-    {
-        var ilFiles = Directory.GetFiles(directory, "*.il", SearchOption.AllDirectories);
-        foreach (var ilFile in ilFiles)
-        {
-            var lines = File.ReadAllLines(ilFile);
-            var normalizedLines = lines
-                .Where(line => !ILDisassemblerVersionRegex().IsMatch(line))
-                // TODO: Remove this normalization once https://github.com/dotnet/runtime/issues/122912 is fixed.
-                .Where(line => !ImageBaseRegex().IsMatch(line))
-                // Normalize NaN formatting: Windows uses "-nan(ind)" while Linux uses "-nan"
-                // TODO: Remove once https://github.com/dotnet/runtime/issues/122976 is fixed.
-                .Select(line => NanIndRegex().Replace(line, "// -nan"))
-                .ToArray();
-            File.WriteAllLines(ilFile, normalizedLines);
-        }
-    }
-
-    /// <summary>
-    /// Normalizes file permissions by removing executable bits from non-script files.
-    /// This is needed because source files may have been checked in with execute permissions,
-    /// but generated files are created with default permissions.
-    /// </summary>
-    private static void NormalizeFilePermissions(string directory)
-    {
-        // TODO: Remove once https://github.com/dotnet/source-build-reference-packages/issues/1531 is fixed.
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            var process = Process.Start(new ProcessStartInfo
-            {
-                FileName = "find",
-                Arguments = $"\"{directory}\" -type f -exec chmod 644 {{}} +",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false
-            });
-            process?.WaitForExit();
-        }
-    }
 }
